@@ -1,0 +1,52 @@
+-- Database: PipeDamageMonitoringSystem
+CREATE DATABASE IF NOT EXISTS PipeDamageMonitoringSystem;
+USE PipeDamageMonitoringSystem;
+
+-- Table: RESIDENT
+CREATE TABLE RESIDENT (
+    Resident_ID INT AUTO_INCREMENT PRIMARY KEY,
+    Full_Name VARCHAR(100) NOT NULL,
+    Username VARCHAR(50) UNIQUE NOT NULL,
+    Password VARCHAR(255) NOT NULL,
+    Address VARCHAR(255)
+);
+
+-- Table: WATER_WORKSTAFF
+CREATE TABLE WATER_WORKSTAFF (
+    Water_Work_Staff_ID INT AUTO_INCREMENT PRIMARY KEY,
+    Full_Name VARCHAR(100) NOT NULL,
+    Position VARCHAR(50),
+    Username VARCHAR(50) UNIQUE NOT NULL,
+    Password VARCHAR(255) NOT NULL
+);
+
+-- Table: DAMAGEREPORT
+CREATE TABLE DAMAGEREPORT (
+    Report_ID INT AUTO_INCREMENT PRIMARY KEY,
+    Reporter_Name VARCHAR(100) NOT NULL,
+    Photo LONGTEXT,
+    Description TEXT,
+    DateTime DATETIME NOT NULL,
+    Location VARCHAR(255),
+    Current_Status VARCHAR(50),
+    Resident_ID INT,
+    Water_Work_Staff_ID INT,
+    FOREIGN KEY (Resident_ID) REFERENCES RESIDENT(Resident_ID) ON DELETE SET NULL,
+    FOREIGN KEY (Water_Work_Staff_ID) REFERENCES WATER_WORKSTAFF(Water_Work_Staff_ID) ON DELETE SET NULL
+);
+
+-- Table: STATUSNOTIFICATION
+CREATE TABLE STATUSNOTIFICATION (
+    Status_Notif_ID INT AUTO_INCREMENT PRIMARY KEY,
+    Report_ID INT NOT NULL,
+    Resident_ID INT NOT NULL,
+    Message TEXT NOT NULL,
+    Date_Sent DATETIME NOT NULL,
+    FOREIGN KEY (Report_ID) REFERENCES DAMAGEREPORT(Report_ID) ON DELETE CASCADE,
+    FOREIGN KEY (Resident_ID) REFERENCES RESIDENT(Resident_ID) ON DELETE CASCADE
+);
+
+-- Indexes for faster lookups
+CREATE INDEX idx_resident_username ON RESIDENT(Username);
+CREATE INDEX idx_staff_username ON WATER_WORKSTAFF(Username);
+CREATE INDEX idx_report_status ON DAMAGEREPORT(Current_Status);
