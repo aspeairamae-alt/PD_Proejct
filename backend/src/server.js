@@ -10,9 +10,22 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5007;
+const allowedOrigins = (process.env.FRONTEND_URL || '')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin(origin, callback) {
+    // Allow non-browser requests and local development tools.
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.length === 0) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(new Error('CORS policy: origin not allowed'));
+  },
+  credentials: true,
+}));
 app.use(express.json());
 
 // Routes
