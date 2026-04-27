@@ -45,7 +45,7 @@ const findDatabaseWithSchema = async () => {
     for (const dbName of databaseCandidates) {
       try {
         await testConnection.query(
-          `SELECT 1 FROM \`${dbName}\`.\`RESIDENT\` LIMIT 1`
+          `SELECT 1 FROM \`${dbName}\`.\`resident\` LIMIT 1`
         );
         return dbName;
       } catch {

@@ -14,7 +14,7 @@ export const registerUser = async (req, res) => {
     
     try {
       // Check if user already exists
-      let table = role === 'staff' ? 'WATER_WORKSTAFF' : 'RESIDENT';
+      let table = role === 'staff' ? 'water_workstaff' : 'resident';
       const [existing] = await connection.execute(
         `SELECT * FROM ${table} WHERE Username = ?`,
         [username]
@@ -31,12 +31,12 @@ export const registerUser = async (req, res) => {
       // Create user in appropriate table
       if (role === 'staff') {
         [result] = await connection.execute(
-          'INSERT INTO WATER_WORKSTAFF (Full_Name, Username, Password) VALUES (?, ?, ?)',
+          'INSERT INTO water_workstaff (Full_Name, Username, Password) VALUES (?, ?, ?)',
           [name, username, hashedPassword]
         );
       } else {
         [result] = await connection.execute(
-          'INSERT INTO RESIDENT (Full_Name, Username, Password, Address) VALUES (?, ?, ?, ?)',
+          'INSERT INTO resident (Full_Name, Username, Password, Address) VALUES (?, ?, ?, ?)',
           [name, username, hashedPassword, address || null]
         );
       }
@@ -81,7 +81,7 @@ export const loginUser = async (req, res) => {
     try {
       // Try resident first
       let [users] = await connection.execute(
-        'SELECT * FROM RESIDENT WHERE Username = ?',
+        'SELECT * FROM resident WHERE Username = ?',
         [username]
       );
 
@@ -97,7 +97,7 @@ export const loginUser = async (req, res) => {
       } else {
         // Try staff
         [users] = await connection.execute(
-          'SELECT * FROM WATER_WORKSTAFF WHERE Username = ?',
+          'SELECT * FROM water_workstaff WHERE Username = ?',
           [username]
         );
 
@@ -153,14 +153,14 @@ export const getUser = async (req, res) => {
     try {
       // Try resident first
       let [users] = await connection.execute(
-        'SELECT Resident_ID as id, Full_Name as name, Username as username FROM RESIDENT WHERE Resident_ID = ?',
+        'SELECT Resident_ID as id, Full_Name as name, Username as username FROM resident WHERE Resident_ID = ?',
         [id]
       );
 
       if (users.length === 0) {
         // Try staff
         [users] = await connection.execute(
-          'SELECT Water_Work_Staff_ID as id, Full_Name as name, Username as username, Position FROM WATER_WORKSTAFF WHERE Water_Work_Staff_ID = ?',
+          'SELECT Water_Work_Staff_ID as id, Full_Name as name, Username as username, Position FROM water_workstaff WHERE Water_Work_Staff_ID = ?',
           [id]
         );
 
