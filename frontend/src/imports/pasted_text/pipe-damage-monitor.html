@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Pipe Damage Monitoring System</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f0f8ff; }
+    section { display: none; padding: 20px; }
+    section.active { display: block; }
+    header { background: #003366; color: white; padding: 15px; }
+    h2 { margin: 0; }
+    .card, .report-card { border: 1px solid #ccc; padding: 15px; margin: 10px 0; background: #fff; cursor: pointer; }
+    .filters button { margin-right: 10px; }
+    .success-message { color: green; font-weight: bold; }
+    .status { padding: 5px 10px; border-radius: 5px; }
+    .status.ongoing { background: blue; color: white; }
+    .status.pending { background: yellow; color: black; }
+    .status.fixed { background: green; color: white; }
+    button { margin-top: 10px; padding: 8px 12px; }
+    .placeholder { color: #666; font-style: italic; }
+  </style>
+</head>
+<body>
+
+<!-- 🔑 Login Screen -->
+<section id="login" class="active">
+  <header><h2>Barangay Poblacion Norte Pipe Damage Monitoring System</h2></header>
+  <label>Username</label><br>
+  <input type="text" id="login-username" placeholder="Enter username"><br><br>
+  <label>Password</label><br>
+  <input type="password" id="login-password" placeholder="Enter password"><br><br>
+  <button onclick="goResident()">Log in</button>
+  <p><a href="#">Forgot password?</a></p>
+  <p>or</p>
+  <button>Continue with Google</button>
+  <p>Don’t have an account? <a href="#" onclick="showSection('register')">Register here</a></p>
+  <button class="admin-login" onclick="showSection('admin-login')">Admin Login</button>
+</section>
+
+<!-- 🛠️ Admin Login Form -->
+<section id="admin-login">
+  <header><h2>Admin Login</h2></header>
+  <label>Admin Username</label><br>
+  <input type="text" id="admin-username" placeholder="Enter admin username"><br><br>
+  <label>Password</label><br>
+  <input type="password" id="admin-password" placeholder="Enter password"><br><br>
+  <button onclick="goAdmin()">Log in as Admin</button>
+  <button onclick="showSection('login')">Back</button>
+</section>
+
+<!-- 📝 Registration Screen -->
+<section id="register">
+  <header><h2>Register Account</h2></header>
+  <label>Full Name</label><br>
+  <input type="text" id="reg-name" placeholder="Full name"><br><br>
+  <label>Address</label><br>
+  <input type="text" id="reg-address" placeholder="Enter address"><br><br>
+  <label>Username</label><br>
+  <input type="text" id="reg-username" placeholder="Enter username"><br><br>
+  <label>Password</label><br>
+  <input type="password" id="reg-password" placeholder="Enter password"><br><br>
+  <label>Confirm Password</label><br>
+  <input type="password" id="reg-confirm" placeholder="Confirm password"><br><br>
+  <button onclick="showSuccess()">Register Account</button>
+  <p id="reg-success" class="success-message" style="display:none;">Registration successful! You can now log in.</p>
+</section>
+
+<!-- 🏠 Resident Dashboard -->
+<section id="resident-dashboard">
+  <header>
+    <h2>Barangay Poblacion Norte Pipe Damage Monitoring System</h2>
+    <button onclick="showSection('login')">Log out</button>
+  </header>
+  <h3 id="resident-greeting">Welcome, Resident</h3>
+  <p id="resident-address">Address will appear here</p>
+
+  <div class="card" onclick="showSection('submit-report')">
+    <h4>Submit Report</h4>
+    <button>Create New Report</button>
+  </div>
+
+  <div class="card" onclick="showSection('view-history')">
+    <h4>View History</h4>
+    <span>0</span>
+  </div>
+
+  <div class="card" onclick="showSection('notifications')">
+    <h4>Notifications</h4>
+    <span>0</span>
+  </div>
+
+  <div class="activity">
+    <h4>Recent Activity</h4>
+    <p class="placeholder">No reports yet. Submit your first report.</p>
+  </div>
+</section>
+
+<!-- 📜 Resident View History -->
+<section id="view-history">
+  <a href="#" onclick="showSection('resident-dashboard')">← Back to Dashboard</a>
+  <h2>Report History</h2>
+  <p>View all your submitted reports</p>
+
+  <div class="filters">
+    <button>Pending</button>
+    <button>Ongoing</button>
+    <button>Fixed</button>
+  </div>
+
+  <div class="reports">
+    <p class="placeholder">You have not submitted any reports yet.</p>
+  </div>
+</section>
+
+<!-- 🔔 Notifications -->
+<section id="notifications">
+  <a href="#" onclick="showSection('resident-dashboard')">← Back to Dashboard</a>
+  <h2>Notifications</h2>
+  <p class="placeholder">No notifications yet.</p>
+</section>
+
+<!-- 🛠️ Admin Dashboard -->
+<section id="admin-dashboard">
+  <header>
+    <h2>Barangay Poblacion Norte Pipe Damage Monitoring System</h2>
+    <button onclick="showSection('login')">Log out</button>
+  </header>
+  <h3 id="admin-greeting">Welcome, Admin</h3>
+  <p>Manage pipe damage reports from resident</p>
+
+  <div class="filters">
+    <button onclick="filterReports('all')">All Reports</button>
+    <button onclick="filterReports('Pending')">Pending</button>
+    <button onclick="filterReports('Ongoing')">Ongoing</button>
+    <button onclick="filterReports('Fixed')">Fixed</button>
+  </div>
+
+  <div class="reports">
+    <p class="placeholder">No reports submitted yet.</p>
+    <!-- Example reports -->
+    <div class="report-card" data-status="Pending">
+      <h4>Report #001</h4>
+      <p><b>Status:</b> Pending</p>
+    </div>
+    <div class="report-card" data-status="Ongoing">
+      <h4>Report #002</h4>
+      <p><b>Status:</b> Ongoing</p>
+    </div>
+    <div class="report-card" data-status="Fixed">
+      <h4>Report #003</h4>
+      <p><b>Status:</b> Fixed</p>
+    </div>
+  </div>
+</section>
+
+<!-- 📝 Submit Report -->
+<section id="submit-report">
+  <a href="#" onclick="showSection('resident-dashboard')">← Back to Dashboard</a>
+  <h2>Submit Pipe Damage Report</h2>
+  <label>Description</label><br>
+  <textarea placeholder="Describe pipe damage in detail..."></textarea><br><br>
+  <label>Location</label><br>
+  <input type="text" placeholder="Enter location"><br><br>
+  <label>Upload Photo</label><br>
+  <input type="file"><br><br>
+  <button onclick="showSection('resident-dashboard')">Submit Report</button>
+  <button onclick="showSection('resident-dashboard')">Cancel</button>
+</section>
+
+<script>
+  let currentUser = null;
+
+  function showSection(id) {
+    document.querySelectorAll('section').forEach(sec => sec.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+
+  function goResident() {
+    // Simulate login result from backend
+    currentUser = { name: "Pedro Santos", address: "Purok 2, Poblacion Norte", role: "resident" };
+    document.getElementById("resident-greeting").textContent = "Welcome, " + currentUser.name;
+    document.getElementById("resident-address").textContent = currentUser.address;
+    showSection('resident-dashboard');
+  }
+
+  function goAdmin() {
+    // Simulate login result from backend
+    currentUser = { name: "Maria Lopez", role: "admin" };
+    document.getElementById("admin-greeting").textContent = "Welcome, " + currentUser.name + " – Waterwork Office";
+    showSection('admin-dashboard');
+  }
+
+  function showSuccess() {
+    document.getElementById('reg-success').style.display = 'block';
+    showSection('register');
+  }
+
+  function filterReports(status) {
+    const reports = document.querySelectorAll('.report-card');
+    reports.forEach(report => {
+      if (status === 'all' || report.dataset.status === status) {
+        report.style.display = 'block';
+      } else {
+        report.style.display = 'none';
+      }
+    });
+  }
+</script>

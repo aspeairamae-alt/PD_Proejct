@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Pipe Damage Monitoring System</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f0f8ff; }
+    section { display: none; padding: 20px; }
+    section.active { display: block; }
+    header { background: #003366; color: white; padding: 15px; }
+    h2 { margin: 0; }
+    .card, .report-card { border: 1px solid #ccc; padding: 15px; margin: 10px 0; background: #fff; }
+    .filters button { margin-right: 10px; }
+    .success-message { color: green; font-weight: bold; }
+    .status { padding: 5px 10px; border-radius: 5px; }
+    .status.ongoing { background: blue; color: white; }
+    .status.pending { background: yellow; color: black; }
+    .status.fixed { background: green; color: white; }
+    button { margin-top: 10px; padding: 8px 12px; }
+    .placeholder { color: #666; font-style: italic; }
+    .update-buttons button { margin-right: 5px; }
+  </style>
+</head>
+<body>
+
+<!-- 🔑 Login Screen -->
+<section id="login" class="active">
+  <header><h2>Barangay Poblacion Norte Pipe Damage Monitoring System</h2></header>
+  <label>Username</label><br>
+  <input type="text" id="login-username" placeholder="Enter username"><br><br>
+  <label>Password</label><br>
+  <input type="password" id="login-password" placeholder="Enter password"><br><br>
+  <button onclick="goResident()">Log in</button>
+  <p><a href="#">Forgot password?</a></p>
+  <p>or</p>
+  <button>Continue with Google</button>
+  <p>Don’t have an account? <a href="#" onclick="showSection('register')">Register here</a></p>
+  <button class="admin-login" onclick="showSection('admin-login')">Admin Login</button>
+</section>
+
+<!-- 🛠️ Admin Login Form -->
+<section id="admin-login">
+  <header><h2>Admin Login</h2></header>
+  <label>Admin Username</label><br>
+  <input type="text" id="admin-username" placeholder="Enter admin username"><br><br>
+  <label>Password</label><br>
+  <input type="password" id="admin-password" placeholder="Enter password"><br><br>
+  <button onclick="goAdmin()">Log in as Admin</button>
+  <button onclick="showSection('login')">Back</button>
+</section>
+
+<!-- 📝 Registration Screen -->
+<section id="register">
+  <header><h2>Register Account</h2></header>
+  <label>Full Name</label><br>
+  <input type="text" id="reg-name" placeholder="Full name"><br><br>
+  <label>Address</label><br>
+  <input type="text" id="reg-address" placeholder="Enter address"><br><br>
+  <label>Username</label><br>
+  <input type="text" id="reg-username" placeholder="Enter username"><br><br>
+  <label>Password</label><br>
+  <input type="password" id="reg-password" placeholder="Enter password"><br><br>
+  <label>Confirm Password</label><br>
+  <input type="password" id="reg-confirm" placeholder="Confirm password"><br><br>
+  <button onclick="showSuccess()">Register Account</button>
+  <p id="reg-success" class="success-message" style="display:none;">Registration successful! You can now log in.</p>
+</section>
+
+<!-- 🏠 Resident Dashboard -->
+<section id="resident-dashboard">
+  <header>
+    <h2>Barangay Poblacion Norte Pipe Damage Monitoring System</h2>
+    <button onclick="showSection('login')">Log out</button>
+  </header>
+  <h3 id="resident-greeting">Welcome, Resident</h3>
+  <p id="resident-address">Address will appear here</p>
+
+  <div class="card" onclick="showSection('submit-report')">
+    <h4>Submit Report</h4>
+    <button>Create New Report</button>
+  </div>
+
+  <div class="card" onclick="showSection('view-history')">
+    <h4>View History</h4>
+    <span id="history-count">0</span>
+  </div>
+
+  <div class="card" onclick="showSection('notifications')">
+    <h4>Notifications</h4>
+    <span id="notif-count">0</span>
+  </div>
+
+  <div class="activity">
+    <h4>Recent Activity</h4>
+    <p id="recent-activity" class="placeholder">No reports yet. Submit your first report.</p>
+  </div>
+</section>
+
+<!-- 📜 Resident View History -->
+<section id="view-history">
+  <a href="#" onclick="showSection('resident-dashboard')">← Back to Dashboard</a>
+  <h2>Report History</h2>
+  <div id="history-list"></div>
+</section>
+
+<!-- 🔔 Notifications -->
+<section id="notifications">
+  <a href="#" onclick="showSection('resident-dashboard')">← Back to Dashboard</a>
+  <h2>Notifications</h2>
+  <div id="notif-list"><p class="placeholder">No notifications yet.</p></div>
+</section>
+
+<!-- 🛠️ Admin Dashboard -->
+<section id="admin-dashboard">
+  <header>
+    <h2>Barangay Poblacion Norte Pipe Damage Monitoring System</h2>
+    <button onclick="showSection('login')">Log out</button>
+  </header>
+  <h3 id="admin-greeting">Welcome, Admin</h3>
+  <p>Manage pipe damage reports from resident</p>
+
+  <div id="admin-reports"></div>
+</section>
+
+<!-- 📝 Submit Report -->
+<section id="submit-report">
+  <a href="#" onclick="showSection('resident-dashboard')">← Back to Dashboard</a>
+  <h2>Submit Pipe Damage Report</h2>
+  <label>Description</label><br>
+  <textarea id="report-desc" placeholder="Describe pipe damage in detail..."></textarea><br><br>
+  <label>Location</label><br>
+  <input id="report-location" type="text" placeholder="Enter location"><br><br>
+  <label>Upload Photo</label><br>
+  <input id="report-photo" type="file"><br><br>
+  <button onclick="submitReport()">Submit Report</button>
+  <button onclick="showSection('resident-dashboard')">Cancel</button>
+</section>
+
+<script>
+  let currentUser = null;
+  let reports = [];
+  let notifications = [];
+
+  function showSection(id) {
+    document.querySelectorAll('section').forEach(sec => sec.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+
+  function goResident() {
+    currentUser = { name: "Pedro Santos", address: "Purok 2, Poblacion Norte", role: "resident" };
+    document.getElementById("resident-greeting").textContent = "Welcome, " + currentUser.name;
+    document.getElementById("resident-address").textContent = currentUser.address;
+    showSection('resident-dashboard');
+  }
+
+  function goAdmin() {
+    currentUser = { name: "Maria Lopez", role: "admin" };
+    document.getElementById("admin-greeting").textContent = "Welcome, " + currentUser.name + " – Waterwork Office";
+    renderAdminReports();
+    showSection('admin-dashboard');
+  }
+
+  function showSuccess() {
+    document.getElementById('reg-success').style.display = "block";
+  }
+
+  function submitReport() {
+    const desc = document.getElementById("report-desc").value;
+    const loc = document.getElementById("report-location").value;
+    if (!desc || !loc) {
+      alert("Please fill in description and location.");
+      return;
+    }
+    const newReport = {
+      id: reports.length + 1,
+      description: desc,
+      location: loc,
+      status: "Pending"
+    };
+    reports.push(newReport);
+    notifications.push("New report submitted: #" + newReport.id);
+    document.getElementById("history-count").textContent = reports.length;
+    document.getElementById("notif-count").textContent = notifications.length;
+    document.getElementById("recent-activity").textContent = "Latest report: " + desc;
+    renderHistory();
+    showSection("resident-dashboard");
+  }
+
+  function renderHistory() {
+    const list = document.getElementById("history-list");
+    list.innerHTML = "";
+    reports.forEach(rep => {
+      const div = document.createElement("div");
+      div.className = "report-card";
+      div.innerHTML = `<h4>Report #${rep.id}</h4><p><b>Location:</b> ${rep.location}</p><p><b>Description:</b> ${rep.description}</p><p><b>Status:</b> <span class="status ${rep.status.toLowerCase()}">${rep.status}</span></p>`;
+      list.appendChild(div);
+    });
+  }
+
+  function renderAdminReports() {
+    const adminDiv = document.getElementById("admin-reports");
+    adminDiv.innerHTML = "";
+    const statuses = ["Pending", "Ongoing", "Fixed"];
+    
+    statuses.forEach(status => {
+      const statusReports = reports.filter(r => r.status === status);
+      const section = document.createElement("div");
+      section.innerHTML = `<h4>${status} Reports</h4>`;
+      statusReports.forEach(rep => {
+        const div = document.createElement("div");
+        div.className = "report-card";
+        div.innerHTML = `<h4>Report #${rep.id}</h4><p><b>Location:</b> ${rep.location}</p><p><b>Description:</b> ${rep.description}</p><p><b>Submitted by:</b> Pedro Santos</p><div class="update-buttons"><button onclick="updateAdminStatus(${rep.id}, 'Pending')">Pending</button><button onclick="updateAdminStatus(${rep.id}, 'Ongoing')">Ongoing</button><button onclick="updateAdminStatus(${rep.id}, 'Fixed')">Fixed</button></div>`;
+        section.appendChild(div);
+      });
+      adminDiv.appendChild(section);
+    });
+  }
+
+  function updateAdminStatus(reportId, newStatus) {
+    const report = reports.find(r => r.id === reportId);
+    if (report) {
+      report.status = newStatus;
+      notifications.push(`Report #${reportId} status updated to ${newStatus}`);
+      renderAdminReports();
+    }
+  }
+
+  function filterReports(status) {
+    const reports = document.querySelectorAll('.report-card');
+    reports.forEach(report => {
+      if (status === 'all' || report.dataset.status === status) {
+        report.style.display = 'block';
+      } else {
+        report.style.display = 'none';
+      }
+    });
+  }
+</script>
+</body>
+</html>
