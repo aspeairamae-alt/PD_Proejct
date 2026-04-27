@@ -1,4 +1,4 @@
-import { getConnection } from '../config/database.js';
+import { getConnection, TABLES } from '../config/database.js';
 
 export const getNotifications = async (req, res) => {
   try {
@@ -6,7 +6,7 @@ export const getNotifications = async (req, res) => {
     const connection = await getConnection();
 
     try {
-      const query = 'SELECT * FROM statusnotification WHERE Resident_ID = ? ORDER BY Date_Sent DESC';
+      const query = `SELECT * FROM \`${TABLES.statusNotification}\` WHERE Resident_ID = ? ORDER BY Date_Sent DESC`;
       const [notifications] = await connection.execute(query, [residentId]);
       res.json(notifications);
     } finally {
@@ -25,7 +25,7 @@ export const markNotificationAsRead = async (req, res) => {
 
     try {
       const [result] = await connection.execute(
-        'DELETE FROM statusnotification WHERE Status_Notif_ID = ?',
+        `DELETE FROM \`${TABLES.statusNotification}\` WHERE Status_Notif_ID = ?`,
         [id]
       );
 
@@ -50,7 +50,7 @@ export const deleteNotification = async (req, res) => {
 
     try {
       const [result] = await connection.execute(
-        'DELETE FROM statusnotification WHERE Status_Notif_ID = ?',
+        `DELETE FROM \`${TABLES.statusNotification}\` WHERE Status_Notif_ID = ?`,
         [id]
       );
 

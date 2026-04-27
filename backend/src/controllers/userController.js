@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { getConnection } from '../config/database.js';
+import { getConnection, TABLES } from '../config/database.js';
 
 export const registerUser = async (req, res) => {
   try {
@@ -14,7 +14,7 @@ export const registerUser = async (req, res) => {
     
     try {
       // Check if user already exists
-      let table = role === 'staff' ? 'water_workstaff' : 'resident';
+      let table = role === 'staff' ? TABLES.waterWorkStaff : TABLES.resident;
       const [existing] = await connection.execute(
         `SELECT * FROM ${table} WHERE Username = ?`,
         [username]
@@ -31,12 +31,12 @@ export const registerUser = async (req, res) => {
       // Create user in appropriate table
       if (role === 'staff') {
         [result] = await connection.execute(
-          'INSERT INTO water_workstaff (Full_Name, Username, Password) VALUES (?, ?, ?)',
+          `INSERT INTO \`${TABLES.waterWorkStaff}\` (Full_Name, Username, Password) VALUES (?, ?, ?)`,
           [name, username, hashedPassword]
         );
       } else {
         [result] = await connection.execute(
-          'INSERT INTO resident (Full_Name, Username, Password, Address) VALUES (?, ?, ?, ?)',
+          `INSERT INTO \`${TABLES.resident}\` (Full_Name, Username, Password, Address) VALUES (?, ?, ?, ?)`,
           [name, username, hashedPassword, address || null]
         );
       }
@@ -81,7 +81,7 @@ export const loginUser = async (req, res) => {
     try {
       // Try resident first
       let [users] = await connection.execute(
-        'SELECT * FROM resident WHERE Username = ?',
+        `SELECT * FROM \`${TABLES.resident}\` WHERE Username = ?`,
         [username]
       );
 
@@ -97,7 +97,7 @@ export const loginUser = async (req, res) => {
       } else {
         // Try staff
         [users] = await connection.execute(
-          'SELECT * FROM water_workstaff WHERE Username = ?',
+          `SELECT * FROM \`${TABLES.waterWorkStaff}\` WHERE Username = ?`,
           [username]
         );
 
@@ -153,14 +153,14 @@ export const getUser = async (req, res) => {
     try {
       // Try resident first
       let [users] = await connection.execute(
-        'SELECT Resident_ID as id, Full_Name as name, Username as username FROM resident WHERE Resident_ID = ?',
+        `SELECT Resident_ID as id, Full_Name as name, Username as username FROM \`${TABLES.resident}\` WHERE Resident_ID = ?`,
         [id]
       );
 
       if (users.length === 0) {
         // Try staff
         [users] = await connection.execute(
-          'SELECT Water_Work_Staff_ID as id, Full_Name as name, Username as username, Position FROM water_workstaff WHERE Water_Work_Staff_ID = ?',
+          `SELECT Water_Work_Staff_ID as id, Full_Name as name, Username as username, Position FROM \`${TABLES.waterWorkStaff}\` WHERE Water_Work_Staff_ID = ?`,
           [id]
         );
 

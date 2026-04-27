@@ -36,6 +36,7 @@ const preferredDatabases = [
 ].filter(Boolean);
 
 const databaseCandidates = [...new Set(preferredDatabases)];
+const tableKeys = ['resident', 'water_workstaff', 'damagereport', 'statusnotification'];
 
 const findDatabaseWithSchema = async () => {
   if (databaseCandidates.length === 0) return 'PipeDamageMonitoringSystem';
@@ -44,10 +45,16 @@ const findDatabaseWithSchema = async () => {
   try {
     for (const dbName of databaseCandidates) {
       try {
-        await testConnection.query(
-          `SELECT 1 FROM \`${dbName}\`.\`resident\` LIMIT 1`
+        const [tables] = await testConnection.execute(
+          `
+            SELECT TABLE_NAME
+            FROM INFORMATION_SCHEMA.TABLES
+            WHERE TABLE_SCHEMA = ?
+              AND LOWER(TABLE_NAME) IN (${tableKeys.map(() => '?').join(',')})
+          `,
+          [dbName, ...tableKeys]
         );
-        return dbName;
+        if (tables.length > 0) return dbName;
       } catch {
         // Try next candidate.
       }
@@ -60,6 +67,40 @@ const findDatabaseWithSchema = async () => {
 
 const resolvedDatabase = await findDatabaseWithSchema();
 console.log(`[DB] Using database: ${resolvedDatabase}`);
+
+const resolveTableMap = async () => {
+  const connection = await mysql.createConnection({
+    ...baseConfig,
+    database: resolvedDatabase,
+  });
+  try {
+    const [tables] = await connection.execute(
+      `
+        SELECT TABLE_NAME
+        FROM INFORMATION_SCHEMA.TABLES
+        WHERE TABLE_SCHEMA = ?
+          AND LOWER(TABLE_NAME) IN (${tableKeys.map(() => '?').join(',')})
+      `,
+      [resolvedDatabase, ...tableKeys]
+    );
+
+    const byLowerName = Object.fromEntries(
+      tables.map((row) => [row.TABLE_NAME.toLowerCase(), row.TABLE_NAME])
+    );
+
+    return {
+      resident: byLowerName.resident || 'resident',
+      waterWorkStaff: byLowerName.water_workstaff || 'water_workstaff',
+      damageReport: byLowerName.damagereport || 'damagereport',
+      statusNotification: byLowerName.statusnotification || 'statusnotification',
+    };
+  } finally {
+    await connection.end();
+  }
+};
+
+export const TABLES = await resolveTableMap();
+console.log('[DB] Table mapping:', TABLES);
 
 export const pool = mysql.createPool({
   ...baseConfig,

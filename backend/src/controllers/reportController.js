@@ -1,4 +1,4 @@
-import { getConnection } from '../config/database.js';
+import { getConnection, TABLES } from '../config/database.js';
 
 export const createReport = async (req, res) => {
   try {
@@ -12,7 +12,7 @@ export const createReport = async (req, res) => {
 
     try {
       const [result] = await connection.execute(
-        'INSERT INTO damagereport (Reporter_Name, Description, Location, DateTime, Current_Status, Resident_ID, Photo) VALUES (?, ?, ?, NOW(), ?, ?, ?)',
+        `INSERT INTO \`${TABLES.damageReport}\` (Reporter_Name, Description, Location, DateTime, Current_Status, Resident_ID, Photo) VALUES (?, ?, ?, NOW(), ?, ?, ?)`,
         [reporterName, description, location, 'Pending', residentId || null, photo || null]
       );
 
@@ -37,7 +37,7 @@ export const getReports = async (req, res) => {
     try {
       let query = `
         SELECT dr.* 
-        FROM damagereport dr
+        FROM \`${TABLES.damageReport}\` dr
       `;
       const params = [];
       const filters = [];
@@ -76,7 +76,7 @@ export const getReportById = async (req, res) => {
 
     try {
       const [reports] = await connection.execute(
-        `SELECT * FROM damagereport WHERE Report_ID = ?`,
+        `SELECT * FROM \`${TABLES.damageReport}\` WHERE Report_ID = ?`,
         [id]
       );
 
@@ -107,7 +107,7 @@ export const updateReportStatus = async (req, res) => {
 
     try {
       const [result] = await connection.execute(
-        'UPDATE damagereport SET Current_Status = ? WHERE Report_ID = ?',
+        `UPDATE \`${TABLES.damageReport}\` SET Current_Status = ? WHERE Report_ID = ?`,
         [status, id]
       );
 
@@ -117,13 +117,13 @@ export const updateReportStatus = async (req, res) => {
 
       // Notify the resident who submitted the report
       const [reports] = await connection.execute(
-        'SELECT Resident_ID FROM damagereport WHERE Report_ID = ?',
+        `SELECT Resident_ID FROM \`${TABLES.damageReport}\` WHERE Report_ID = ?`,
         [id]
       );
 
       if (reports.length > 0 && reports[0].Resident_ID) {
         await connection.execute(
-          'INSERT INTO statusnotification (Report_ID, Resident_ID, Message, Date_Sent) VALUES (?, ?, ?, NOW())',
+          `INSERT INTO \`${TABLES.statusNotification}\` (Report_ID, Resident_ID, Message, Date_Sent) VALUES (?, ?, ?, NOW())`,
           [id, reports[0].Resident_ID, `Report #${id} status updated to ${status}`]
         );
       }
@@ -145,7 +145,7 @@ export const deleteReport = async (req, res) => {
 
     try {
       const [result] = await connection.execute(
-        'DELETE FROM damagereport WHERE Report_ID = ?',
+        `DELETE FROM \`${TABLES.damageReport}\` WHERE Report_ID = ?`,
         [id]
       );
 
